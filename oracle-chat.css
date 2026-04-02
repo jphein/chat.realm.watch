@@ -1,0 +1,310 @@
+/* ═══════════════════════════════════════════════════════════
+   Oracle Chat — Reusable AI Chat Component
+   Theme via CSS custom properties on :root or .oracle-scope
+   ═══════════════════════════════════════════════════════════ */
+
+.oracle-scope {
+  /* Defaults — override in consuming project */
+  --oracle-accent: #b48cff;
+  --oracle-accent-deep: #3a1a5e;
+  --oracle-accent-glow: rgba(180, 140, 255, 0.3);
+  --oracle-gold: #f0d080;
+  --oracle-gold-deep: rgba(200, 170, 90, 0.15);
+  --oracle-bg: rgba(20, 12, 28, 0.97);
+  --oracle-bg-msg: rgba(45, 25, 60, 0.6);
+  --oracle-bg-user: rgba(95, 68, 35, 0.5);
+  --oracle-text: #e8dcc8;
+  --oracle-text-dim: rgba(232, 220, 200, 0.5);
+  --oracle-border: rgba(200, 170, 90, 0.12);
+  --oracle-border-bright: rgba(200, 170, 90, 0.45);
+  --oracle-radius: 10px;
+  --oracle-font-body: 'MedievalSharp', 'Inter', sans-serif;
+  --oracle-font-heading: 'Cinzel', serif;
+  --oracle-font-ui: 'Inter', sans-serif;
+  --oracle-transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Floating Orb ── */
+
+.oracle-orb {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 50;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--oracle-accent), var(--oracle-accent-deep));
+  border: 2px solid var(--oracle-accent-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  cursor: pointer;
+  animation: oracleFloat 6s ease-in-out infinite;
+  transition: all var(--oracle-transition);
+  box-shadow:
+    0 0 20px var(--oracle-accent-glow),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.oracle-orb:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 0 40px var(--oracle-accent-glow),
+    0 0 80px rgba(180, 140, 255, 0.15);
+}
+
+.oracle-orb.chat-open {
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.oracle-orb-tooltip {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--oracle-bg);
+  color: var(--oracle-text);
+  font-family: var(--oracle-font-ui);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--oracle-border);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.oracle-orb:hover .oracle-orb-tooltip {
+  opacity: 1;
+}
+
+@keyframes oracleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ── Chat Panel ── */
+
+.oracle-panel {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 51;
+  width: 400px;
+  height: 520px;
+  border-radius: var(--oracle-radius);
+  background: var(--oracle-bg);
+  border: 1px solid var(--oracle-border-bright);
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.5),
+    0 0 20px var(--oracle-accent-glow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.8) translateY(20px);
+  pointer-events: none;
+  transition: all var(--oracle-transition);
+}
+
+.oracle-panel.open {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+/* ── Header ── */
+
+.oracle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--oracle-border);
+  background: linear-gradient(135deg, var(--oracle-accent-deep), rgba(20, 12, 28, 0.9));
+}
+
+.oracle-header-title {
+  font-family: var(--oracle-font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--oracle-accent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.oracle-close {
+  background: none;
+  border: none;
+  color: var(--oracle-text-dim);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.oracle-close:hover {
+  color: var(--oracle-gold);
+}
+
+/* ── Messages ── */
+
+.oracle-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oracle-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.oracle-messages::-webkit-scrollbar-thumb {
+  background: var(--oracle-border);
+  border-radius: 2px;
+}
+
+.oracle-msg {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: var(--oracle-font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--oracle-text);
+  word-break: break-word;
+}
+
+.oracle-msg.oracle {
+  align-self: flex-start;
+  background: var(--oracle-bg-msg);
+  border: 1px solid var(--oracle-border);
+  border-left: 3px solid var(--oracle-accent);
+}
+
+.oracle-msg.user {
+  align-self: flex-end;
+  background: var(--oracle-bg-user);
+  border: 1px solid var(--oracle-gold-deep);
+  border-right: 3px solid var(--oracle-gold);
+}
+
+.oracle-msg a {
+  color: var(--oracle-accent);
+  text-decoration: underline;
+}
+
+.oracle-msg strong {
+  color: var(--oracle-gold);
+}
+
+.oracle-msg em {
+  color: var(--oracle-accent);
+  font-style: italic;
+}
+
+/* ── Typing Indicator ── */
+
+.oracle-typing {
+  display: flex;
+  gap: 5px;
+  padding: 4px 0;
+}
+
+.oracle-typing span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--oracle-accent);
+  opacity: 0.4;
+  animation: oracleTypingBounce 1.2s ease-in-out infinite;
+}
+
+.oracle-typing span:nth-child(2) { animation-delay: 0.15s; }
+.oracle-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes oracleTypingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Input ── */
+
+.oracle-input-wrap {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid var(--oracle-border);
+  gap: 8px;
+  background: rgba(10, 5, 16, 0.5);
+}
+
+.oracle-input {
+  flex: 1;
+  background: rgba(40, 25, 55, 0.6);
+  border: 1px solid var(--oracle-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--oracle-text);
+  font-family: var(--oracle-font-ui);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.oracle-input::placeholder {
+  color: var(--oracle-text-dim);
+}
+
+.oracle-input:focus {
+  border-color: var(--oracle-accent);
+}
+
+.oracle-send {
+  background: var(--oracle-accent-deep);
+  border: 1px solid var(--oracle-accent);
+  border-radius: 6px;
+  color: var(--oracle-accent);
+  font-size: 18px;
+  padding: 0 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.oracle-send:hover {
+  background: var(--oracle-accent);
+  color: var(--oracle-bg);
+}
+
+.oracle-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 480px) {
+  .oracle-orb {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .oracle-panel {
+    width: calc(100vw - 24px);
+    height: 60vh;
+    bottom: 12px;
+    right: 12px;
+  }
+}
