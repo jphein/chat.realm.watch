@@ -23,6 +23,7 @@
     orbEmoji: '\uD83D\uDD2E',
     tooltip: 'Consult the Oracle',
     historySize: 10,
+    context: '',
   };
 
   var els = {};
@@ -176,10 +177,13 @@
     chatHistory.push({ role: 'user', content: text });
     showTyping();
 
+    var payload = { message: text, history: chatHistory.slice(-(config.historySize)) };
+    if (config.context) payload.context = config.context;
+
     fetch(config.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: chatHistory.slice(-(config.historySize)) }),
+      body: JSON.stringify(payload),
     }).then(function (resp) {
       var ct = resp.headers.get('content-type') || '';
       if (ct.indexOf('text/event-stream') !== -1) {
@@ -189,15 +193,32 @@
         var reader = resp.body.getReader();
         var decoder = new TextDecoder();
         var buf = '';
+        var currentEvent = '';
         function pump() {
           reader.read().then(function (r) {
             if (r.done) { if (fullText) chatHistory.push({ role: 'assistant', content: fullText }); chatBusy = false; els.send.disabled = false; els.input.focus(); return; }
             buf += decoder.decode(r.value, { stream: true });
             var lines = buf.split('\n'); buf = lines.pop() || '';
             lines.forEach(function (l) {
-              l = l.trim(); if (!l.startsWith('data: ')) return;
-              var d = l.slice(6); if (d === '[DONE]') return;
-              try { var p = JSON.parse(d); if (p.text) { fullText += p.text; setMarkdownContent(msgEl, fullText); els.messages.scrollTop = els.messages.scrollHeight; } } catch (e) {}
+              l = l.trim();
+              if (!l) { currentEvent = ''; return; }
+              if (l.indexOf('event: ') === 0) { currentEvent = l.slice(7); return; }
+              if (l.indexOf('data: ') !== 0) return;
+              var d = l.slice(6);
+              if (d === '[DONE]') return;
+              try {
+                var p = JSON.parse(d);
+                if (currentEvent === 'error' && p.error) {
+                  fullText = '';
+                  setMarkdownContent(msgEl, 'The Oracle\'s vision is clouded. (' + p.error + ')');
+                } else if (currentEvent === 'done') {
+                  // Stream complete — full_text available but we already have it
+                } else if (p.text) {
+                  fullText += p.text;
+                  setMarkdownContent(msgEl, fullText);
+                  els.messages.scrollTop = els.messages.scrollHeight;
+                }
+              } catch (e) {}
             });
             pump();
           });
