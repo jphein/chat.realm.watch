@@ -184,7 +184,14 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      credentials: 'include',
     }).then(function (resp) {
+      if (resp.redirected || resp.status === 401 || resp.status === 302) {
+        removeTyping();
+        addMessage('oracle', 'You must sign in first. Use the SSO login to consult the Oracle.');
+        chatBusy = false; els.send.disabled = false;
+        return;
+      }
       var ct = resp.headers.get('content-type') || '';
       if (ct.indexOf('text/event-stream') !== -1) {
         removeTyping();
